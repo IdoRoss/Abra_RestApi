@@ -35,6 +35,11 @@ namespace Abra_RestApi.Controllers
             return JsonConvert.DeserializeObject<RootObject>(stringResult);
         }
         // ------------ PART 1 -------------//
+        /// <summary>
+        /// Returns data for 10 random users with specified gender
+        /// </summary>
+        /// <param name="gender">gender male or female</param>
+        /// <returns>List of RandomUser objects</returns>
         [HttpGet("{gender}")]
         public async Task<ActionResult<IList<RandomUser>>> GetUserData(string gender)
         {
@@ -48,6 +53,11 @@ namespace Abra_RestApi.Controllers
 
             return Ok(res);
         }
+        /// <summary>
+        /// Query the most popular country out of 5000 users
+        /// </summary>
+        /// <returns>string of the mosy popular country</returns>
+        [HttpGet("{gender}")]
         [HttpGet]
         public async Task<ActionResult<string>> GetMostPupalarCountry()
         {
@@ -67,6 +77,10 @@ namespace Abra_RestApi.Controllers
 
             return Ok(result);
         }
+        /// <summary>
+        /// Gets the email of 30 random users
+        /// </summary>
+        /// <returns>List of email strings</returns>
         [HttpGet]
         public async Task<ActionResult<List<string>>> GetListOfMails()
         {
@@ -80,6 +94,10 @@ namespace Abra_RestApi.Controllers
             var result = resRootObj.results.Select(u => u.email).ToList();
             return Ok(result);
         }
+        /// <summary>
+        /// Query the oldest user out of 100 users
+        /// </summary>
+        /// <returns>OldestUser obj</returns>
         [HttpGet]
         public async Task<ActionResult<OldestUser>> GetTheOldestUser()
         {
@@ -136,3 +154,7 @@ namespace Abra_RestApi.Controllers
         }
     }
 }
+//Notes: 1) A better archtectute would be create a generic http respond object that is
+//         responsible of sending a message in case of errors and have a generic T data
+//         of the response data (User Or RandomUser or List of RandomUsers)
+//       2) Haveing 2 seprate controllers is better for seperation

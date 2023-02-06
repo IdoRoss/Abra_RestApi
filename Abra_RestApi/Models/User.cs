@@ -2,6 +2,7 @@
 
 namespace Abra_RestApi.Models
 {
+    // ------------ PART 2 -------------//
     public class User
     {
         [Required]

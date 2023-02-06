@@ -1,5 +1,6 @@
 ﻿namespace Abra_RestApi.Models
 {
+    // ------------ PART 1 -------------//
     public class RandomUser
     {
         public string gender { get; set; }
