@@ -16,7 +16,7 @@ namespace Abra_RestApi.Controllers
     {
 
         private readonly IUsersService _usersService;
-        private static List<User> _users = new List<User>();// to be removed when finished service integration
+
         private readonly HttpClient _httpClient;// a better practice would be to have this in a service
         public UsersController(IUsersService userService)
         {
@@ -120,6 +120,7 @@ namespace Abra_RestApi.Controllers
             return Ok(new OldestUser { name = result.name.first + " " + result.name.last, age = result.dob.age });
         }
         // ------------ PART 2 -------------//
+
         [HttpPost]
         public ActionResult<User> CreateNewUser(User user)
         {
@@ -128,35 +129,39 @@ namespace Abra_RestApi.Controllers
             {
                 return NotFound();
             }
-            // assuming id is key check if already existing
-            if(_users.Any(u=>u.Id==user.Id))
+            try
             {
-                return BadRequest();
+                var newUser = _usersService.CreateNewUser(user);
+                return CreatedAtAction(nameof(GetNewUser), new { id = newUser.Id }, newUser);
             }
-            _users.Add(user);
-            return CreatedAtAction(nameof(GetNewUser), new { id = user.Id }, user);
+            catch(Exception ex) 
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
         [HttpGet("{id}")]
         public ActionResult<User> GetNewUser(int id)
         {
-            var res = _users.FirstOrDefault(u=>u.Id==id);
-            if(res == null)
+            var res = _usersService.GetNewUser(id);
+            if (res == null)
             {
                 return NotFound();
             }
             return Ok(res);
         }
-        [HttpPatch]
-        public ActionResult<User> UpdateUserData(User updatedUser)
+        [HttpPut]
+        public ActionResult<User> UpdateUserData(User userToUpdate)
         {
-            var DbUser = _users.FirstOrDefault(u => u.Id == updatedUser.Id);
-            if (DbUser == null)
+            try
             {
-                return NotFound();
+                var updatedUser = _usersService.UpdateUserData(userToUpdate);
+                return Ok(updatedUser);
             }
-            _users.Remove(DbUser);
-            _users.Add(updatedUser);
-            return Ok(updatedUser);
+            catch(Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

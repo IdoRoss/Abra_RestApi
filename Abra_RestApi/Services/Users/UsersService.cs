@@ -17,17 +17,19 @@ namespace Abra_RestApi.Services.Users
         {
 
             // assuming id is key check if already existing
-            if (!IsUserInDb(user))
+            if (IsUserInDb(user))
             {
-                throw new Exception("Not Found");
+                throw new Exception("User Allready in Db");
             }
             _context.Users.Add(user);
+            _context.SaveChanges();
             return user;
         }
 
 
         public User? GetNewUser(int id)
         {
+
             // find user and return it
             var res = _context.Users.FirstOrDefault(u => u.Id == id);
 
