@@ -27,13 +27,14 @@ namespace Abra_RestApi.Controllers
 
 
         // ------------- API Call Func--------------- //
+        // ideally would be a function in a RandomUsersService
         private async Task<RootObject?> RandomUsersApiCall(string query)
         {
-            if(query == null)
+            if (query == null)
             {
                 query = "?results=100";
             }
-            HttpResponseMessage response = await _httpClient.GetAsync("https://randomuser.me/api/"+ query);
+            HttpResponseMessage response = await _httpClient.GetAsync("https://randomuser.me/api/" + query);
             response.EnsureSuccessStatusCode();
             var stringResult = await response.Content.ReadAsStringAsync();
 
@@ -63,20 +64,19 @@ namespace Abra_RestApi.Controllers
         /// Query the most popular country out of 5000 users
         /// </summary>
         /// <returns>string of the mosy popular country</returns>
-        [HttpGet("{gender}")]
         [HttpGet]
         public async Task<ActionResult<string>> GetMostPupalarCountry()
         {
             string query = "?results=5000";
 
             var resRootObj = await RandomUsersApiCall(query);
-            if(resRootObj == null)
+            if (resRootObj == null)
             {
                 return NotFound();
             }
             // quary thr most popular country
             var result = resRootObj.results
-                .GroupBy(u => u.nat)
+                .GroupBy(u => u.location.country)
                 .OrderByDescending(g => g.Count())
                 .First()
                 .Key;
@@ -91,7 +91,7 @@ namespace Abra_RestApi.Controllers
         public async Task<ActionResult<List<string>>> GetListOfMails()
         {
             string query = "?results=30";
-            
+
             var resRootObj = await RandomUsersApiCall(query);
             if (resRootObj == null)
             {
@@ -120,7 +120,11 @@ namespace Abra_RestApi.Controllers
             return Ok(new OldestUser { name = result.name.first + " " + result.name.last, age = result.dob.age });
         }
         // ------------ PART 2 -------------//
-
+        /// <summary>
+        /// Takes a user and adds it to DB using the service
+        /// </summary>
+        /// <param name="user">new User</param>
+        /// <returns>The created user</returns>
         [HttpPost]
         public ActionResult<User> CreateNewUser(User user)
         {
@@ -134,12 +138,17 @@ namespace Abra_RestApi.Controllers
                 var newUser = _usersService.CreateNewUser(user);
                 return CreatedAtAction(nameof(GetNewUser), new { id = newUser.Id }, newUser);
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
 
         }
+        /// <summary>
+        /// Gets a user from db using the service
+        /// </summary>
+        /// <param name="id">Id of requested user</param>
+        /// <returns>The User</returns>
         [HttpGet("{id}")]
         public ActionResult<User> GetNewUser(int id)
         {
@@ -150,6 +159,11 @@ namespace Abra_RestApi.Controllers
             }
             return Ok(res);
         }
+        /// <summary>
+        /// Gets a user to update and updates it by id useing the service
+        /// </summary>
+        /// <param name="userToUpdate">User to update</param>
+        /// <returns>Updated user</returns>
         [HttpPut]
         public ActionResult<User> UpdateUserData(User userToUpdate)
         {
@@ -158,14 +172,18 @@ namespace Abra_RestApi.Controllers
                 var updatedUser = _usersService.UpdateUserData(userToUpdate);
                 return Ok(updatedUser);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                if (ex.Message == "Not Found")
+                {
+                    return NotFound(ex.Message);
+                }
+                return BadRequest(ex.Message);
             }
         }
     }
 }
-//Notes: 1) A better archtectute would be create a generic http respond object that is
-//         responsible of sending a message in case of errors and have a generic T data
-//         of the response data (User Or RandomUser or List of RandomUsers)
-//       2) Haveing 2 seprate controllers is better for seperation
+//Notes: 1) A better archtectute would be create a generic http respond class that is
+//         responsible for sending the requested data and a message and in case of errors. this class would 
+//         have a generic T data of the response data (User Or RandomUser or List of RandomUsers)
+//       2) Haveing 2 seprate controllers is better for seperation of resources
