@@ -1,9 +1,12 @@
 ﻿using Abra_RestApi.Models;
+using Abra_RestApi.Services.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Reflection;
+//Name: Ido Rosenberger
+//Email ido.ross98@gmail.com
 
 namespace Abra_RestApi.Controllers
 {
@@ -11,14 +14,17 @@ namespace Abra_RestApi.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private static List<User> _users = new List<User>();
-        private readonly HttpClient _httpClient;
 
-        public UsersController()
+        private readonly IUsersService _usersService;
+        private static List<User> _users = new List<User>();// to be removed when finished service integration
+        private readonly HttpClient _httpClient;// a better practice would be to have this in a service
+        public UsersController(IUsersService userService)
         {
+            _usersService = userService;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri("https://api.randomuser.me");
         }
+
 
         // ------------- API Call Func--------------- //
         private async Task<RootObject?> RandomUsersApiCall(string query)
